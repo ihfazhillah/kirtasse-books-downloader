@@ -32,19 +32,22 @@ def download_all(all_links, path_to="."):
 
 def download(link, path_to=".", ):
     file_name = link.split("/")[-1]
-    resp = requests.get(link, stream=True, timeout=None)
-    total_length = resp.headers.get('content-length')
-    dl = 0
-    with open(os.path.join(path_to, file_name), "wb") as f:
-        for chunk in resp.iter_content(chunk_size=1024):
-            if chunk:
-                dl += len(chunk)
-                f.write(chunk)
-                print("downloading %s [%s/%s]" %(
-                                        resp.url, dl, total_length))
-    # logging
-    with open(os.path.join(path_to, "log"), "a") as f:
-        f.write("%s\n" %link)
+    try:
+        resp = requests.get(link, stream=True, timeout=None)
+        total_length = resp.headers.get('content-length')
+        dl = 0
+        with open(os.path.join(path_to, file_name), "wb") as f:
+            for chunk in resp.iter_content(chunk_size=1024):
+                if chunk:
+                    dl += len(chunk)
+                    f.write(chunk)
+                    print("downloading %s [%s/%s]" %(
+                                            resp.url, dl, total_length))
+        # logging
+        with open(os.path.join(path_to, "log"), "a") as f:
+            f.write("%s\n" %link)
+    except requests.exceptions.ConnectionError:
+        download(link, path_to)
 
 
 
