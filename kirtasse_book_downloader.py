@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 from bs4 import BeautifulSoup
 import subprocess
-
+import requests
+import os
 
 def open_bookslist(path="/home/ihfazh/.kirtasse/data/bookslist.xml"):
     with open(path, 'rb') as bookslist_file:
@@ -14,8 +15,21 @@ def get_all_links(bookslist_object):
 
 def download(all_links, path_to="."):
     for link in all_links:
-        print("downloading %s" %link)
-        subprocess.Popen(['wget', '-c', '-P', path_to, link])
+        with open(os.path.join(path_to, "log"), "r") as f:
+            links_in_log = f.readlines()
+
+        if link not in links_in_log:
+            print("downloading %s" %link)
+            file_name = link.split("/")[-1]
+            resp = requests.get(link, stream=True)
+            with open(os.path.join(path_to, file_name), "wb") as f:
+                for chunk in resp.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+        # logging
+        with open(os.path.join(path_to, "log"), "a") as f:
+            f.write(link)
+
 
 
 if __name__ == '__main__':
