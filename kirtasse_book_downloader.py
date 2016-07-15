@@ -14,21 +14,29 @@ def get_all_links(bookslist_object):
     return all_links
 
 def download(all_links, path_to="."):
-    for link in all_links:
-        with open(os.path.join(path_to, "log"), "r") as f:
-            links_in_log = f.readlines()
+    for index, link in enumerate(all_links):
+        try:
+            with open(os.path.join(path_to, "log"), "r") as f:
+                links_in_log = f.readlines()
+        except IOError:
+            links_in_log = []
 
         if link not in links_in_log:
-            print("downloading %s" %link)
+            print("[%s/%s] downloading %s" %(index, len(all_links), link))
             file_name = link.split("/")[-1]
-            resp = requests.get(link, stream=True)
+            resp = requests.get(link, stream=True, timeout=None)
+            total_length = resp.headers.get('content-length')
+            dl = 0
             with open(os.path.join(path_to, file_name), "wb") as f:
                 for chunk in resp.iter_content(chunk_size=1024):
                     if chunk:
+                        dl += len(chunk)
                         f.write(chunk)
-        # logging
-        with open(os.path.join(path_to, "log"), "a") as f:
-            f.write(link)
+                        print("downloading %s [%s/%s]" %(
+                                                resp.url, dl, total_length))
+            # logging
+            with open(os.path.join(path_to, "log"), "a") as f:
+                f.write("%s\n" %link)
 
 
 
