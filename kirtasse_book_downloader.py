@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python2
 from bs4 import BeautifulSoup
 import subprocess
 import requests
@@ -33,7 +33,7 @@ def download_all(all_links, path_to="."):
 def download(link, path_to=".", ):
     file_name = link.split("/")[-1]
     try:
-        resp = requests.get(link, stream=True, timeout=None)
+        resp = requests.get(link, stream=True)
         total_length = resp.headers.get('content-length')
         dl = 0
         with open(os.path.join(path_to, file_name), "wb") as f:
@@ -48,10 +48,15 @@ def download(link, path_to=".", ):
             f.write("%s\n" %link)
     except requests.exceptions.ConnectionError:
         download(link, path_to)
+    except requests.exceptions.TimeOut:
+        download(link, path_to)
+
+def main():
+    bookslist_object = open_bookslist()
+    all_links = get_all_links(bookslist_object)
+    download_all(all_links, path_to="/home/ihfazh/Public")
 
 
 
 if __name__ == '__main__':
-    bookslist_object = open_bookslist()
-    all_links = get_all_links(bookslist_object)
-    download_all(all_links, path_to="/home/ihfazh/Public")
+    main()
